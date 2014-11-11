@@ -29,6 +29,8 @@ Game.prototype.checkCollisions = function() {
 			// On empeche la bouboule d'entrer dans une boucle de collision avec un boolean
 			if(this.players[cpt].colliding == false) {
 				this.bouboule.vitesse.x = -this.bouboule.vitesse.x;	
+
+				this.bouboule.vitesse.y += (this.players[cpt].vel.y)/4;
 				this.players[cpt].colliding = true;
 			} 
 		} else {
@@ -40,8 +42,8 @@ Game.prototype.checkCollisions = function() {
 
 Game.prototype.controlsManager = function() {
 	for(cpt=0;cpt<this.players.length; cpt++) {
-		if(this.players[cpt].keyStatus[0]) this.players[cpt].move(-this.players[cpt].inerty);
-		if(this.players[cpt].keyStatus[1]) this.players[cpt].move(+this.players[cpt].inerty);
+		if(this.players[cpt].keyStatus[0]) this.players[cpt].move(-this.players[cpt].acceleration);
+		if(this.players[cpt].keyStatus[1]) this.players[cpt].move(+this.players[cpt].acceleration);
 	}
 }
 
@@ -53,8 +55,12 @@ var Player = function(pos, keyMap) {
 	var _self = this;
 	this.keyMap = keyMap; // 0 -> UP / 1 -> DOWN
 	this.keyStatus = [false,false];
-	this.inerty = 10;
 	this.score = 0;
+
+	this.acceleration = 2;
+	this.vel = { y : 0 };
+	this.friction = 1 - 0.1;
+
 	this.colliding = false;
 
 	this.view = new Path.Rectangle({
@@ -65,7 +71,12 @@ var Player = function(pos, keyMap) {
 };
 
 Player.prototype.move = function(delta) {
-	this.view.position.y += delta;
+	this.vel.y += delta;
+}
+
+Player.prototype.physics = function() {
+	this.vel.y *= this.friction;
+	this.view.position.y = this.view.position.y + this.vel.y;
 }
 
 // ############################# //
@@ -88,7 +99,7 @@ Pallet.prototype.reset = function() {
 
 Pallet.prototype.launch = function() {
 	if(this.vitesse.x == 0 && this.vitesse.y == 0)
-		this.vitesse = {x: 6*(Math.round(Math.random())*2-1), y : 6*Math.random()-3};
+		this.vitesse = {x: 6*(Math.round(Math.random())*2-1), y : 0};
 }
 
 Pallet.prototype.move = function() {
@@ -134,6 +145,9 @@ function onFrame(event) {
 		game.bouboule.reset();
 		game.updateScores();	
 	} 
+
+	for (cpt = 0; cpt < game.players.length; cpt++)
+		game.players[cpt].physics();
 }
 
 // ############################# //
