@@ -24,7 +24,17 @@ Game.prototype.updateScores = function() {
 Game.prototype.checkCollisions = function() {
 	for(cpt=0; cpt<this.players.length; cpt++) {
 		var collisions = this.bouboule.view.getIntersections(this.players[cpt].view);
-		if(collisions.length) this.bouboule.vitesse.x = -this.bouboule.vitesse.x;
+
+		if(collisions.length) {
+			// On empeche la bouboule d'entrer dans une boucle de collision avec un boolean
+			if(this.players[cpt].colliding == false) {
+				this.bouboule.vitesse.x = -this.bouboule.vitesse.x;	
+				this.players[cpt].colliding = true;
+			} 
+		} else {
+			// Si il n'y a plus aucune collision, on désactive le boolean
+			this.players[cpt].colliding = false;
+		}
 	}
 };
 
@@ -45,6 +55,7 @@ var Player = function(pos, keyMap) {
 	this.keyStatus = [false,false];
 	this.inerty = 10;
 	this.score = 0;
+	this.colliding = false;
 
 	this.view = new Path.Rectangle({
 		point : pos, 
@@ -72,7 +83,12 @@ Pallet.prototype.reset = function() {
 		radius: 20,
 		strokeColor: 'black'
 	});
-	this.vitesse = {x: 6*(Math.round(Math.random())*2-1), y : 6*(Math.round(Math.random())*2-1)};
+	this.vitesse = {x: 0, y: 0};
+}
+
+Pallet.prototype.launch = function() {
+	if(this.vitesse.x == 0 && this.vitesse.y == 0)
+		this.vitesse = {x: 6*(Math.round(Math.random())*2-1), y : 6*Math.random()-3};
 }
 
 Pallet.prototype.move = function() {
@@ -145,7 +161,13 @@ function onKeyDown(event) {
 		case game.players[1].keyMap[1]:
 		game.players[1].keyStatus[1]=true;
 		break;
+
+		// LAUNCH BUTTON
+		case 'space':
+		game.bouboule.launch();
+		break;
 	}
+	console.log(event.key);
 }
 
 function onKeyUp(event) {
