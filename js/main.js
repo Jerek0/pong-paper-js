@@ -1,19 +1,27 @@
 var cpt;
 
+var conf = {
+	width: paper.view.size.width,
+	height: paper.view.size.height
+}
+
+console.log("Config :");
+console.log(conf);
+
 // ############################# //
 // ####### CLASSE GAME ######### //
 // ############################# //
 
 var Game = function() {
 	this.players = [];
-	this.ui = new PointText(new Point(window.innerWidth/2-20,20));
+	this.ui = new PointText(new Point(conf.width/2-20,20));
 	this.ui.fillColor = "black";
 };
 
 Game.prototype.init = function() {
 	this.bouboule = new Pallet();
-	this.players[0] = new Player(new Point(50, 100), ['a','q']);
-	this.players[1] = new Player(new Point(window.innerWidth-100, 100), ['p','l']);
+	this.players[0] = new Player(new Point(50, conf.height/2), ['a','q']);
+	this.players[1] = new Player(new Point(conf.width-100, conf.height/2), ['p','l']);
 	this.updateScores();
 };
 
@@ -33,7 +41,7 @@ Game.prototype.checkCollisions = function() {
 				this.bouboule.vitesse.y += (this.players[cpt].vel.y)/4;
 				this.players[cpt].colliding = true;
 			} 
-		} else {
+		} else if(this.players[cpt].colliding){
 			// Si il n'y a plus aucune collision, on désactive le boolean
 			this.players[cpt].colliding = false;
 		}
@@ -79,6 +87,17 @@ Player.prototype.physics = function() {
 	this.view.position.y = this.view.position.y + this.vel.y;
 }
 
+Player.prototype.checkBoundaries = function() {
+	if(this.view.position.y < 0) {
+		this.vel.y = -this.vel.y;
+		this.view.position.y = 0;
+	}
+	else if (this.view.position.y > conf.height) {
+		this.vel.y = -this.vel.y;
+		this.view.position.y = conf.height;
+	}
+}
+
 // ############################# //
 // ####### CLASSE PALET ######## //
 // ############################# //
@@ -108,18 +127,23 @@ Pallet.prototype.move = function() {
 }
 
 Pallet.prototype.checkFrameCollisions = function() {
-	if(this.view.position.y >= window.innerHeight || this.view.position.y <= 0) {
+	if(this.view.position.y >= conf.height || this.view.position.y <= 0) {
 		this.vitesse.y = -this.vitesse.y;
 	}
 }
 
 Pallet.prototype.checkWins = function(players) {
-	if(this.view.position.x >= window.innerWidth || this.view.position.x <= 0) {
-		if(this.view.position.x > window.innerWidth) players[0].score++;
+	if(this.view.position.x >= conf.width || this.view.position.x <= 0) {
+		if(this.view.position.x > conf.width) players[0].score++;
 		if(this.view.position.x < 0) players[1].score++;
 
 		return true;
 	}
+}
+
+Pallet.prototype.accelerate = function() {
+	this.vitesse.y *= 1.0005;
+	this.vitesse.x *= 1.0005;
 }
 
 // =================================================================================== //
@@ -140,14 +164,22 @@ function onFrame(event) {
 	game.bouboule.move();
 	game.checkCollisions();
 	game.bouboule.checkFrameCollisions();
+	game.bouboule.accelerate();
 	
 	if(game.bouboule.checkWins(game.players)) {
 		game.bouboule.reset();
 		game.updateScores();	
 	} 
 
-	for (cpt = 0; cpt < game.players.length; cpt++)
+	for (cpt = 0; cpt < game.players.length; cpt++) {
 		game.players[cpt].physics();
+		game.players[cpt].checkBoundaries();
+	}		
+}
+
+function onResize() {
+	conf.width = paper.view.size.width;
+	conf.height = paper.view.size.height;
 }
 
 // ############################# //
@@ -181,7 +213,6 @@ function onKeyDown(event) {
 		game.bouboule.launch();
 		break;
 	}
-	console.log(event.key);
 }
 
 function onKeyUp(event) {
