@@ -63,6 +63,7 @@ var Player = function(pos, keyMap) {
 	var _self = this;
 	this.keyMap = keyMap; // 0 -> UP / 1 -> DOWN
 	this.keyStatus = [false,false];
+	this.touchStatus = false;
 	this.score = 0;
 
 	this.acceleration = 2;
@@ -238,3 +239,92 @@ function onKeyUp(event) {
 		break;
 	}
 }
+
+
+
+// NETWORKING
+
+function init() {
+
+	// Get the config file to receive the app adress
+	$.getJSON("./server/config.json", function(data) {
+		var address = data.url+':'+data.port;
+
+		console.log(address);
+
+		$.getScript('http://'+address+"/socket.io/socket.io.js").done(function() {
+			controller.init(address);
+		});
+	});
+}
+
+var controller = {
+	init: function(address) {
+		this.socket = io.connect(address);
+		this.bindEventStart();
+		this.startHosting();
+	},
+
+	startHosting: function() {
+		this.socket.emit('newHosting')
+		console.log('Asked for hosting');
+	},
+
+	onNewGameID: function(data) {
+		console.log('Received game id '+data.gameID);
+		this.urlMobile = window.location.href+"mobile?id="+data.gameID;
+		
+		alert('Go to this address : '+this.urlMobile);
+
+		/*this.$url.text(this.urlMobile);
+		this.$qrcode.qrcode({
+			width: 200,
+			height: 200,
+			text: this.urlMobile
+		});*/
+	},
+
+	onNewBridge: function() {
+		//console.log(this.$status);
+
+		//this.$status.text('Connection established');
+		console.log('conenction established');
+		this.registerMovements();
+	},
+
+	registerMovements: function() {
+		var self = this;
+
+		this.socket.on('move', function() {
+			console.log('move');
+			game.players[0].touchStatus=true;
+		});
+
+		this.socket.on('delta', function(data) {
+			console.log('delta');
+			game.players[0].move(data.delta*(game.players[0].acceleration*4)/100);
+		});
+
+		this.socket.on('stop', function() {
+			console.log('stop');
+			game.players[0].touchStatus=false;
+		});
+	},
+
+	bindEventStart: function() {
+		var scope = this;
+		this.socket.on('newGameID', function(data) {
+			scope.onNewGameID(data);
+		});
+		this.socket.on('newBridge', function() {
+			console.log('newBridge');
+			scope.onNewBridge();
+		});
+	}
+
+}
+
+$(function() {
+	init();
+});
+

@@ -1,0 +1,62 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Host</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+        <style>
+            body {
+                width: 100%;
+                font-family: sans-serif;
+                padding: 0 !important; margin: 0 !important;
+            }
+
+            .button {
+                position: absolute;
+                width: 100%;
+                height: 50%;
+                display: block;
+                margin: 0 !important;
+                background-color: #333;
+                color: rgba(255,255,255,.5);
+                text-align: center;
+            }
+
+            .button-top {
+                top: 0;
+                left: 0;
+                background-color: #444;
+            }
+
+            .button-bottom {
+                bottom: 0;
+                left: 0;
+            }
+
+            .button span {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate3d(-50%,-50%,0);
+            }
+
+        </style>
+
+    </head>
+    <body>
+        <!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+        <!-- Add your site or application content here -->
+        
+        <div class="button button-top"><span>TOP</span></div>
+        <div class="button button-bottom"><span>BOTTOM</span></div>
+
+        <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+        <script src="js/main.js"></script>
+    </body>
+</html>
